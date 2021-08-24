@@ -13,7 +13,8 @@ class DefaultController extends AbstractController
      */
     public function homepage(): Response
     {
-        return $this->render('homepage.html.twig', [
-        ]);
+        $response = $this->render('homepage.html.twig');
+
+        return $response;
     }
 }
