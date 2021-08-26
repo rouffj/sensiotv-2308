@@ -1,6 +1,10 @@
 {% extends 'base.html.twig' %}
 {% block title 'Home' %}
 {% block content %}
+    {% if app.request.query.get('msg') %}
+    <p style="margin: 70px 10px 10px;" class="alert alert-danger">{{ app.request.query.get('msg') }}</p>
+    {% endif %}
+
         <section id="first-section" class="background-gradient text-center text-white">
         <div class="container p-md-3">
             <div class="row">

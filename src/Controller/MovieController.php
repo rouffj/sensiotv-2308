@@ -6,25 +6,27 @@ use App\Entity\Movie;
 use App\Omdb\OmdbClient;
 use App\Repository\MovieRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 /**
  * @Route("/movie", name="movie_")
  */
 class MovieController extends AbstractController
 {
+
     /**
      * @var OmdbClient
      */
     private $omdb;
 
-    public function __construct(HttpClientInterface $httpClient)
+    public function __construct(OmdbClient $omdb)
     {
-        $this->omdb = new OmdbClient($httpClient,'28c5b7b1', 'https://www.omdbapi.com');
+        $this->omdb = $omdb;
     }
 
     /**
@@ -33,6 +35,9 @@ class MovieController extends AbstractController
     public function show($id, MovieRepository $movieRepository): Response
     {
         $movie = $movieRepository->find($id);
+        if (!$this->isGranted('MOVIE_VIEW', $movie)) {
+            throw new AccessDeniedException('You cannot view this movie because there is a blacklisted keyword in title');
+        }
 
         return $this->render('movie/show.html.twig', [
             'movie' => $movie
@@ -42,6 +47,7 @@ class MovieController extends AbstractController
 
     /**
      * @Route("/{imdbId}/import")
+     * @IsGranted(attributes="ROLE_USER", message="You need to have the role USER to be able to import a movie")
      */
     public function import($imdbId, EntityManagerInterface $entityManager): Response
     {
